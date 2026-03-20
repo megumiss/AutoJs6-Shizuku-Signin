@@ -1,0 +1,7 @@
+﻿{
+  "name": "AutoJs6-Shizuku-Signin",
+  "main": "./main.js",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "description": "AutoJs6 + Shizuku multi-task sign-in project"
+}
