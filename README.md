@@ -1,6 +1,6 @@
 # AutoJs6 Shizuku Signin
 
-基于 **AutoJs6 + Shizuku** 的多任务自动执行脚本。
+基于 **AutoJs6 + Shizuku** 的淘金币自动签到脚本。
 
 ## 功能简介
 
@@ -9,7 +9,7 @@
 - 启动前自动解锁
 - 任务执行后自动收尾：回到桌面并锁屏
 - 当前内置任务：
-  - `taobao_signin`（淘宝签到流程）
+  - `taobao_signin`（淘金币签到流程）
 
 ## 目录说明
 
