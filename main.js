@@ -12,6 +12,28 @@ function summaryLine(summary) {
   ].join(" ");
 }
 
+function compactSummary(summary) {
+  return {
+    ok: !!summary.ok,
+    mode: summary.mode,
+    total: summary.total,
+    success: summary.success,
+    failed: summary.failed,
+    skipped: summary.skipped,
+    costMs: summary.costMs,
+    errorCode: summary.errorCode || "",
+    tasks: (summary.results || []).map(function (r) {
+      return {
+        taskId: r.taskId,
+        ok: !!r.ok,
+        stage: r.stage,
+        costMs: r.costMs,
+        errorCode: r.errorCode || ""
+      };
+    })
+  };
+}
+
 function safeToast(text) {
   if (typeof toast === "function") {
     toast(text);
@@ -26,7 +48,7 @@ function main() {
 
     var summary = taskRunner.runTasks(ctx.config, ctx);
     if (logger && typeof logger.info === "function") {
-      logger.info("MAIN", "Run finished", summary);
+      logger.info("MAIN", "Run finished", compactSummary(summary));
     }
 
     console.log("[SUMMARY] " + summaryLine(summary));

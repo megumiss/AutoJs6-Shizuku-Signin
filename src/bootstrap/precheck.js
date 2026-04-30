@@ -1,4 +1,6 @@
-﻿var errors = require("../core/errors");
+var errors = require("../core/errors");
+var shizukuShell = require("../adapters/shizukuShell");
+var screen = require("../adapters/screen");
 
 function checkRuntime() {
   if (typeof shizuku !== "function") {
@@ -9,7 +11,19 @@ function checkRuntime() {
   }
 }
 
-module.exports = {
-  checkRuntime: checkRuntime
-};
+function checkShizukuReady() {
+  var ready = shizukuShell.ensureReady();
+  if (!ready.ok) {
+    throw errors.createError("E-SHIZUKU-NOT-READY", "Shizuku is not ready.", ready);
+  }
+}
 
+function checkCapturePermission() {
+  screen.ensureCapturePermission();
+}
+
+module.exports = {
+  checkRuntime: checkRuntime,
+  checkShizukuReady: checkShizukuReady,
+  checkCapturePermission: checkCapturePermission
+};

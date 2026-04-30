@@ -1,10 +1,12 @@
-﻿var precheck = require("./precheck");
+var precheck = require("./precheck");
 var storage = require("../core/storage");
 var logger = require("../core/logger");
 var errors = require("../core/errors");
 
 function init() {
   precheck.checkRuntime();
+  precheck.checkShizukuReady();
+  precheck.checkCapturePermission();
 
   var loaded = storage.loadConfig();
   if (!loaded.ok) {
@@ -21,4 +23,3 @@ function init() {
 module.exports = {
   init: init
 };
-

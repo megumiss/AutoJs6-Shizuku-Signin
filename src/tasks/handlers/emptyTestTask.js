@@ -1,43 +1,9 @@
-﻿var resultUtil = require("../../core/result");
-var errors = require("../../core/errors");
-var shizukuShell = require("../../adapters/shizukuShell");
+var resultUtil = require("../../core/result");
 var appControl = require("../../adapters/appControl");
 var input = require("../../adapters/input");
 var screen = require("../../adapters/screen");
 var ocrEngine = require("../../vision/ocrEngine");
-
-function createTaskError(code, message, details) {
-  return errors.createError(code, message, details || null);
-}
-
-function assertShellResult(result, code, message) {
-  if (!result || !result.ok) {
-    throw createTaskError(code, message, { shellResult: result || null });
-  }
-}
-
-function extractOcrPreview(ocrRaw) {
-  if (ocrRaw == null) {
-    return "";
-  }
-  if (typeof ocrRaw === "string") {
-    return ocrRaw;
-  }
-  if (Array.isArray(ocrRaw)) {
-    var line = ocrRaw.map(function (item) {
-      if (item == null) return "";
-      if (typeof item === "string") return item;
-      if (typeof item.text === "string") return item.text;
-      if (typeof item.label === "string") return item.label;
-      return String(item);
-    }).join(" ").trim();
-    return line;
-  }
-  if (typeof ocrRaw.text === "string") {
-    return ocrRaw.text;
-  }
-  return String(ocrRaw);
-}
+var taskCommon = require("../common/taskCommon");
 
 function run(taskConfig, ctx, settings) {
   var startedAt = Date.now();
@@ -59,13 +25,7 @@ function run(taskConfig, ctx, settings) {
 
   try {
     ctx.logger.info("TASK", "Empty test task start", { taskId: taskConfig.id });
-
-    var ready = shizukuShell.ensureReady();
-    if (!ready.ok) {
-      throw createTaskError("E-SHIZUKU-NOT-READY", "Shizuku 未就绪", ready);
-    }
-    screen.ensureCapturePermission();
-    evidence.push("权限检查通过：shizuku + 截图权限");
+    evidence.push("前置检查通过：截图权限");
 
     var packageName = String(taskConfig.testPackageName || taskConfig.packageName || "com.android.settings");
     var openResult = appControl.startApp({
@@ -74,19 +34,17 @@ function run(taskConfig, ctx, settings) {
         launch: { mode: "package" }
       }
     });
-    assertShellResult(openResult, "E-TEST-OPEN-APP", "测试任务打开应用失败");
+    taskCommon.assertShellResult(openResult, "E-TEST-OPEN-APP", "测试任务打开应用失败");
     evidence.push("打开应用成功: " + packageName);
 
-    if (typeof sleep === "function") {
-      sleep(1200);
-    }
+    taskCommon.sleepMs(1200);
 
     var img = null;
     var ocrPreview = "";
     try {
       img = screen.capture();
       var ocrRaw = ocrEngine.recognize(img);
-      ocrPreview = extractOcrPreview(ocrRaw);
+      ocrPreview = taskCommon.extractOcrText(ocrRaw);
       if (!ocrPreview) {
         ocrPreview = "OCR结果为空";
       }
@@ -97,27 +55,23 @@ function run(taskConfig, ctx, settings) {
     }
     evidence.push("OCR识别完成: " + ocrPreview.substring(0, 80));
 
-    var w = (typeof device !== "undefined" && device && device.width) ? device.width : 1080;
-    var h = (typeof device !== "undefined" && device && device.height) ? device.height : 2400;
-
-    var tapX = Math.round(w * 0.5);
-    var tapY = Math.round(h * 0.5);
+    var size = taskCommon.getDeviceSize(1080, 2400);
+    var tapX = Math.round(size.width * 0.5);
+    var tapY = Math.round(size.height * 0.5);
     var tapResult = input.tap(tapX, tapY);
-    assertShellResult(tapResult, "E-TEST-TAP", "测试任务点击失败");
+    taskCommon.assertShellResult(tapResult, "E-TEST-TAP", "测试任务点击失败");
     evidence.push("点击完成: (" + tapX + "," + tapY + ")");
 
-    if (typeof sleep === "function") {
-      sleep(350);
-    }
+    taskCommon.sleepMs(350);
 
     var swipeResult = input.swipe(
-      Math.round(w * 0.5),
-      Math.round(h * 0.75),
-      Math.round(w * 0.5),
-      Math.round(h * 0.35),
+      Math.round(size.width * 0.5),
+      Math.round(size.height * 0.75),
+      Math.round(size.width * 0.5),
+      Math.round(size.height * 0.35),
       260
     );
-    assertShellResult(swipeResult, "E-TEST-SWIPE", "测试任务滑动失败");
+    taskCommon.assertShellResult(swipeResult, "E-TEST-SWIPE", "测试任务滑动失败");
     evidence.push("滑动完成: 中轴上滑");
 
     return resultUtil.createTaskResult(taskConfig, {
