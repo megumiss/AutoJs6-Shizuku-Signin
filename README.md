@@ -26,9 +26,7 @@
 4. 运行 `main.js` 执行任务
 
 ## 运行前要求
-
-- AutoJs6 已安装并可运行脚本
+- AutoJs6 已安装并可运行脚本（官方地址：https://github.com/SuperMonster003/AutoJs6）
+- Shizuku 已安装并启动服务（官方地址：https://github.com/RikkaApps/Shizuku）
 - AutoJs6 已授予 Shizuku 权限
-- Shizuku 已安装并启动服务
 - 允许脚本申请截图权限
-
