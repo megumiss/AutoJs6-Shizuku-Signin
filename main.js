@@ -1,5 +1,6 @@
 var startup = require("./src/bootstrap/startup");
 var taskRunner = require("./src/tasks/taskRunner");
+var deviceState = require("./src/core/deviceState");
 
 /**
  * 将任务汇总对象格式化为单行摘要，便于控制台快速查看结果。
@@ -62,6 +63,9 @@ function main() {
     logger = ctx.logger || null;
 
     var summary = taskRunner.runTasks(ctx.config, ctx);
+    // 任务流程完成后统一执行回桌面与锁屏。
+    deviceState.finalizeDeviceState(logger);
+
     if (logger && typeof logger.info === "function") {
       logger.info("MAIN", "Run finished", compactSummary(summary));
     }

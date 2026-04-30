@@ -2,6 +2,7 @@ var precheck = require("./precheck");
 var storage = require("../core/storage");
 var logger = require("../core/logger");
 var errors = require("../core/errors");
+var deviceState = require("../core/deviceState");
 
 /**
  * 执行启动初始化：预检、配置加载、解锁与权限准备。
@@ -18,7 +19,7 @@ function init() {
 
   var settings = (loaded.config && loaded.config.settings) ? loaded.config.settings : {};
   // 启动阶段先完成解锁，避免后续任务在锁屏界面执行失败。
-  var unlockInfo = precheck.unlockDevice(settings.lockScreenPassword);
+  var unlockInfo = deviceState.unlockDevice(settings.lockScreenPassword);
   if (logger && typeof logger.info === "function") {
     logger.info("BOOT", "Device unlock check", unlockInfo);
   }
