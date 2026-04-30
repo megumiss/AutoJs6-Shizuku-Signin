@@ -25,7 +25,7 @@ ui.layout(
           <input id="taskGapMsInput" inputType="number" hint="例如 1200" />
 
           <text text="截屏间隔 ms" textSize="12sp" textColor="#6B7280" marginTop="6" />
-          <input id="screenCaptureIntervalMsInput" inputType="number" hint="例如 500" />
+          <input id="screenCaptureIntervalMsInput" inputType="number" hint="例如 1000" />
 
           <text text="锁屏密码（可为空）" textSize="12sp" textColor="#6B7280" marginTop="6" />
           <input id="lockScreenPasswordInput" password="true" hint="用于后续解锁逻辑" />

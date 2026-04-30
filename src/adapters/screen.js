@@ -1,4 +1,25 @@
 var errors = require("../core/errors");
+var lastCaptureAt = 0;
+var STORAGE_NAME = "signin.config";
+var CONFIG_KEY = "config";
+
+/**
+ * 从配置中读取截图间隔，读取失败时回退默认值。
+ */
+function getCaptureIntervalFromConfig() {
+  try {
+    var sto = storages.create(STORAGE_NAME);
+    var cfg = sto.get(CONFIG_KEY) || {};
+    var settings = cfg.settings || {};
+    var n = Number(settings.screenCaptureIntervalMs);
+    if (!isNaN(n) && n >= 50) {
+      return Math.round(n);
+    }
+  } catch (e) {
+    // ignore
+  }
+  return 1000;
+}
 
 /**
  * 申请并确认截图权限可用。
@@ -14,10 +35,23 @@ function ensureCapturePermission() {
 
 /**
  * 执行截图并在异常时转换为统一错误。
+ * @param {*} intervalMs
  */
-function capture() {
+function capture(intervalMs) {
+  var source = intervalMs == null ? getCaptureIntervalFromConfig() : intervalMs;
+  var waitMs = Number(source);
+  if (!isNaN(waitMs) && waitMs > 0 && lastCaptureAt > 0) {
+    var elapsed = Date.now() - lastCaptureAt;
+    var remain = waitMs - elapsed;
+    if (remain > 0 && typeof sleep === "function") {
+      sleep(Math.round(remain));
+    }
+  }
+
   try {
-    return images.captureScreen();
+    var img = images.captureScreen();
+    lastCaptureAt = Date.now();
+    return img;
   } catch (e) {
     throw errors.createError("E-CAPTURE-SECURITY-EXCEPTION", "captureScreen() failed", { cause: String(e) });
   }
@@ -54,4 +88,3 @@ module.exports = {
   clip: clip,
   save: save
 };
-

@@ -298,7 +298,7 @@ function waitAndClickText(options) {
   if (timeoutMs == null || timeoutMs < 1000) timeoutMs = 20000;
 
   var pollMs = toNumber(step.pollMs);
-  if (pollMs == null || pollMs < 100) pollMs = 500;
+  if (pollMs == null || pollMs < 100) pollMs = 1000;
 
   var afterTapSleepMs = toNumber(step.afterTapSleepMs);
   if (afterTapSleepMs == null || afterTapSleepMs < 0) afterTapSleepMs = 800;
@@ -358,6 +358,68 @@ function waitAndClickText(options) {
 }
 
 /**
+ * 基于当前截图尝试点击一次目标文字，不做循环等待。
+ * @param {*} options
+ */
+function tryClickTextOnce(options) {
+  var step = options || {};
+  var img = step.img;
+  if (!img) {
+    throw createTaskError("E-TASK-INVALID-IMAGE", "tryClickTextOnce 缺少截图对象");
+  }
+
+  var matched = findTargetFromDetect(ocrEngine.detect(img), step.text);
+  if (matched && matched.point) {
+    var tapResult = input.tap(matched.point.x, matched.point.y);
+    assertShellResult(tapResult, step.tapErrorCode || "E-TASK-TAP-TEXT", "点击“" + step.text + "”失败");
+    return {
+      clicked: true,
+      point: matched.point,
+      text: matched.text || step.text,
+      seenButNoPoint: false
+    };
+  }
+
+  if (matched && !matched.point) {
+    return {
+      clicked: false,
+      point: null,
+      text: matched.text || step.text,
+      seenButNoPoint: true
+    };
+  }
+
+  if (containsTargetByRecognize(img, step.text)) {
+    return {
+      clicked: false,
+      point: null,
+      text: step.text,
+      seenButNoPoint: true
+    };
+  }
+
+  return {
+    clicked: false,
+    point: null,
+    text: "",
+    seenButNoPoint: false
+  };
+}
+
+/**
+ * 在给定截图上尝试点击目标文字，命中返回点击结果，未命中返回 null。
+ * @param {*} img
+ * @param {*} text
+ */
+function appearThenClickOnImage(img, text) {
+  var probe = tryClickTextOnce({
+    img: img,
+    text: text
+  });
+  return probe && probe.clicked ? probe : null;
+}
+
+/**
  * 获取设备分辨率，缺失时使用默认值。
  * @param {*} defaultWidth
  * @param {*} defaultHeight
@@ -375,6 +437,8 @@ module.exports = {
   createTaskError: createTaskError,
   assertShellResult: assertShellResult,
   extractOcrText: extractOcrText,
+  appearThenClickOnImage: appearThenClickOnImage,
+  tryClickTextOnce: tryClickTextOnce,
   waitAndClickText: waitAndClickText,
   sleepMs: sleepMs,
   getDeviceSize: getDeviceSize

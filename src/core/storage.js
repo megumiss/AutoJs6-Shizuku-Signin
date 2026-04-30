@@ -31,7 +31,7 @@ function getDefaultSettings() {
     dryRun: false,
     stopOnFailure: false,
     taskGapMs: 1200,
-    screenCaptureIntervalMs: 500,
+    screenCaptureIntervalMs: 1000,
     lockScreenPassword: ""
   };
 }

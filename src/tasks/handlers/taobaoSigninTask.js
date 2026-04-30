@@ -1,5 +1,6 @@
 var resultUtil = require("../../core/result");
 var appControl = require("../../adapters/appControl");
+var screen = require("../../adapters/screen");
 var taskCommon = require("../common/taskCommon");
 
 /**
@@ -20,16 +21,12 @@ function run(taskConfig, ctx, settings) {
       startedAt: startedAt,
       finishedAt: Date.now(),
       costMs: Date.now() - startedAt,
-      errorCode: "",
       errorMessage: "演练模式：淘宝签到任务未执行真实动作。",
       evidence: ["dryRun=true"]
     });
   }
 
   try {
-    ctx.logger.info("TASK", "Taobao sign-in task start", { taskId: taskConfig.id });
-    evidence.push("前置检查通过：Shizuku + 截图权限");
-
     var packageName = "com.taobao.taobao";
     var launchComponent = "com.taobao.taobao/com.taobao.tao.welcome.Welcome";
     var openResult = appControl.startApp({
@@ -38,76 +35,49 @@ function run(taskConfig, ctx, settings) {
         launch: { mode: "component", component: launchComponent }
       }
     });
-    taskCommon.assertShellResult(openResult, "E-TAOBAO-OPEN-APP", "打开淘宝失败");
-    evidence.push("打开应用成功: " + launchComponent);
-
-    var pollMs = Number(taskConfig.pollMs || 600);
-    if (isNaN(pollMs) || pollMs < 150) pollMs = 600;
-
-    // 按页面流程序列化执行，每一步都是“等文字出现并点击”。
-    var steps = [
-      {
-        id: "MY_TAOBAO",
-        text: "我的淘宝",
-        waitErrorCode: "E-TAOBAO-WAIT-MY-TAOBAO",
-        tapErrorCode: "E-TAOBAO-TAP-MY-TAOBAO",
-        afterTapSleepMs: 1000,
-        timeoutMs: Number(taskConfig.waitMyTaobaoMs || 20000)
-      },
-      {
-        id: "TAOJINBI_DI",
-        text: "淘金币抵",
-        waitErrorCode: "E-TAOBAO-WAIT-TAOJINBI-DI",
-        tapErrorCode: "E-TAOBAO-TAP-TAOJINBI-DI",
-        afterTapSleepMs: 1200,
-        timeoutMs: Number(taskConfig.waitTaojinbiMs || 20000)
-      },
-      {
-        id: "SIGNIN_GET_GOLD",
-        text: "签到领金币",
-        waitErrorCode: "E-TAOBAO-WAIT-SIGNIN-GET-GOLD",
-        tapErrorCode: "E-TAOBAO-TAP-SIGNIN-GET-GOLD",
-        afterTapSleepMs: 1200,
-        timeoutMs: Number(taskConfig.waitSigninBtnMs || 20000)
-      }
-    ];
-
-    for (var i = 0; i < steps.length; i += 1) {
-      var step = steps[i];
-      if (isNaN(step.timeoutMs) || step.timeoutMs < 1000) {
-        step.timeoutMs = 20000;
-      }
-
-      // 当前步骤失败会抛错并中断后续步骤，便于直接定位失败节点。
-      evidence.push("等待目标出现: " + step.text);
-      taskCommon.waitAndClickText({
-        ctx: ctx,
-        taskId: taskConfig.id,
-        stepId: step.id,
-        text: step.text,
-        timeoutMs: step.timeoutMs,
-        pollMs: pollMs,
-        afterTapSleepMs: step.afterTapSleepMs,
-        tapErrorCode: step.tapErrorCode,
-        waitErrorCode: step.waitErrorCode,
-        evidence: evidence
-      });
+    if (!openResult || !openResult.ok) {
+      throw new Error("打开淘宝失败");
     }
+    evidence.push("打开应用成功: " + launchComponent);
+    taskCommon.sleepMs(1200);
 
-    return resultUtil.createTaskResult(taskConfig, {
-      ok: true,
-      stage: "TAOBAO_SIGNIN_DONE",
-      startedAt: startedAt,
-      finishedAt: Date.now(),
-      costMs: Date.now() - startedAt,
-      errorCode: "",
-      errorMessage: "",
-      evidence: evidence
-    });
+    while (1) {
+      var img = screen.capture();
+      try {
+        var rSign = taskCommon.appearThenClickOnImage(img, "签到领金币");
+        if (rSign) {
+          evidence.push("点击成功: 签到领金币 @(" + rSign.point.x + "," + rSign.point.y + ")");
+          return resultUtil.createTaskResult(taskConfig, {
+            ok: true,
+            stage: "TAOBAO_SIGNIN_DONE",
+            startedAt: startedAt,
+            finishedAt: Date.now(),
+            costMs: Date.now() - startedAt,
+            errorMessage: "",
+            evidence: evidence
+          });
+        }
+
+        var rGold = taskCommon.appearThenClickOnImage(img, "淘金币抵");
+        if (rGold) {
+          evidence.push("点击成功: 淘金币抵 @(" + rGold.point.x + "," + rGold.point.y + ")");
+          continue;
+        }
+
+        var rMine = taskCommon.appearThenClickOnImage(img, "我的淘宝");
+        if (rMine) {
+          evidence.push("点击成功: 我的淘宝 @(" + rMine.point.x + "," + rMine.point.y + ")");
+          continue;
+        }
+      } finally {
+        if (img && typeof img.recycle === "function") {
+          img.recycle();
+        }
+      }
+    }
   } catch (e) {
-    var code = e && e.code ? e.code : "E-TAOBAO-SIGNIN-FAILED";
     var msg = e && e.message ? e.message : String(e);
-    ctx.logger.error("TASK", "Taobao sign-in task failed", { taskId: taskConfig.id, code: code, message: msg });
+    ctx.logger.error("TASK", "Taobao sign-in task failed: " + msg);
 
     return resultUtil.createTaskResult(taskConfig, {
       ok: false,
@@ -115,7 +85,6 @@ function run(taskConfig, ctx, settings) {
       startedAt: startedAt,
       finishedAt: Date.now(),
       costMs: Date.now() - startedAt,
-      errorCode: code,
       errorMessage: msg,
       evidence: evidence
     });
