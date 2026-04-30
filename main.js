@@ -1,6 +1,10 @@
 var startup = require("./src/bootstrap/startup");
 var taskRunner = require("./src/tasks/taskRunner");
 
+/**
+ * 将任务汇总对象格式化为单行摘要，便于控制台快速查看结果。
+ * @param {*} summary
+ */
 function summaryLine(summary) {
   return [
     "mode=" + summary.mode,
@@ -12,6 +16,10 @@ function summaryLine(summary) {
   ].join(" ");
 }
 
+/**
+ * 提取汇总结果中的关键信息，避免打印过长日志。
+ * @param {*} summary
+ */
 function compactSummary(summary) {
   return {
     ok: !!summary.ok,
@@ -34,12 +42,19 @@ function compactSummary(summary) {
   };
 }
 
+/**
+ * 在运行环境支持时显示 Toast，避免非 UI 环境抛错。
+ * @param {*} text
+ */
 function safeToast(text) {
   if (typeof toast === "function") {
     toast(text);
   }
 }
 
+/**
+ * 执行主流程：初始化、运行任务、输出汇总并统一处理异常。
+ */
 function main() {
   var logger = null;
   try {

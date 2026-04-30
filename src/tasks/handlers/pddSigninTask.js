@@ -1,5 +1,11 @@
-﻿var stubTask = require("./stubTask");
+var stubTask = require("./stubTask");
 
+/**
+ * 执行当前任务的主流程并返回标准任务结果。
+ * @param {*} taskConfig
+ * @param {*} ctx
+ * @param {*} settings
+ */
 function run(taskConfig, ctx, settings) {
   return stubTask.runStub(
     taskConfig,

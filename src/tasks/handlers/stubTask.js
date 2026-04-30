@@ -1,5 +1,13 @@
-﻿var resultUtil = require("../../core/result");
+var resultUtil = require("../../core/result");
 
+/**
+ * 执行占位任务逻辑，用于未实现任务的骨架流程。
+ * @param {*} taskConfig
+ * @param {*} ctx
+ * @param {*} settings
+ * @param {*} stage
+ * @param {*} message
+ */
 function runStub(taskConfig, ctx, settings, stage, message) {
   var startedAt = Date.now();
   var dryRun = !!(settings && settings.dryRun);

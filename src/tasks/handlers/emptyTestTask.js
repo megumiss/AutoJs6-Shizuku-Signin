@@ -5,6 +5,12 @@ var screen = require("../../adapters/screen");
 var ocrEngine = require("../../vision/ocrEngine");
 var taskCommon = require("../common/taskCommon");
 
+/**
+ * 执行当前任务的主流程并返回标准任务结果。
+ * @param {*} taskConfig
+ * @param {*} ctx
+ * @param {*} settings
+ */
 function run(taskConfig, ctx, settings) {
   var startedAt = Date.now();
   var dryRun = !!(settings && settings.dryRun);

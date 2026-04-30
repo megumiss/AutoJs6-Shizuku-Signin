@@ -1,5 +1,10 @@
-﻿var errors = require("../core/errors");
+var errors = require("../core/errors");
 
+/**
+ * 将 Shizuku 原始返回转换为统一结构。
+ * @param {*} raw
+ * @param {*} costMs
+ */
 function normalizeResult(raw, costMs) {
   var code = raw && typeof raw.code === "number" ? raw.code : -1;
   return {
@@ -11,6 +16,9 @@ function normalizeResult(raw, costMs) {
   };
 }
 
+/**
+ * 检查全局 shizuku 函数是否可调用。
+ */
 function ensureReady() {
   return {
     ok: typeof shizuku === "function",
@@ -18,6 +26,10 @@ function ensureReady() {
   };
 }
 
+/**
+ * 执行单条 shell 命令并返回标准结果。
+ * @param {*} cmd
+ */
 function exec(cmd) {
   if (typeof shizuku !== "function") {
     throw errors.createError("E-SHIZUKU-NOT-READY", "Global shizuku(...) is not available.");
@@ -27,6 +39,10 @@ function exec(cmd) {
   return normalizeResult(raw, Date.now() - started);
 }
 
+/**
+ * 批量执行 shell 命令并返回标准结果。
+ * @param {*} cmdList
+ */
 function execMany(cmdList) {
   if (typeof shizuku !== "function") {
     throw errors.createError("E-SHIZUKU-NOT-READY", "Global shizuku(...) is not available.");

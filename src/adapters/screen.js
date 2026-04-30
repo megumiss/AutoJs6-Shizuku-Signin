@@ -1,5 +1,8 @@
-﻿var errors = require("../core/errors");
+var errors = require("../core/errors");
 
+/**
+ * 申请并确认截图权限可用。
+ */
 function ensureCapturePermission() {
   var ok = images.requestScreenCapture();
   if (!ok) {
@@ -9,6 +12,9 @@ function ensureCapturePermission() {
   return true;
 }
 
+/**
+ * 执行截图并在异常时转换为统一错误。
+ */
 function capture() {
   try {
     return images.captureScreen();
@@ -17,6 +23,11 @@ function capture() {
   }
 }
 
+/**
+ * 按相对区域裁剪截图。
+ * @param {*} img
+ * @param {*} region
+ */
 function clip(img, region) {
   var w = img.getWidth();
   var h = img.getHeight();
@@ -27,6 +38,11 @@ function clip(img, region) {
   return images.clip(img, x, y, cw, ch);
 }
 
+/**
+ * 保存图片到指定路径。
+ * @param {*} img
+ * @param {*} path
+ */
 function save(img, path) {
   images.save(img, path);
   return path;

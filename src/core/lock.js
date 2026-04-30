@@ -1,5 +1,8 @@
-﻿var _locked = false;
+var _locked = false;
 
+/**
+ * 尝试获取脚本级互斥锁。
+ */
 function tryLock() {
   if (_locked) {
     return false;
@@ -8,6 +11,9 @@ function tryLock() {
   return true;
 }
 
+/**
+ * 释放脚本级互斥锁。
+ */
 function unlock() {
   _locked = false;
 }

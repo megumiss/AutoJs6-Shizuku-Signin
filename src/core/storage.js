@@ -1,4 +1,4 @@
-﻿var STORAGE_NAME = "signin.config";
+var STORAGE_NAME = "signin.config";
 var CONFIG_KEY = "config";
 
 var TASK_CATALOG = [
@@ -7,14 +7,25 @@ var TASK_CATALOG = [
   { id: "empty_test_task", name: "流程测试任务", defaultEnabled: false }
 ];
 
+/**
+ * 判断值是否为普通对象。
+ * @param {*} v
+ */
 function isPlainObject(v) {
   return Object.prototype.toString.call(v) === "[object Object]";
 }
 
+/**
+ * 通过 JSON 序列化实现深拷贝。
+ * @param {*} v
+ */
 function deepClone(v) {
   return JSON.parse(JSON.stringify(v));
 }
 
+/**
+ * 返回默认全局设置。
+ */
 function getDefaultSettings() {
   return {
     dryRun: false,
@@ -25,10 +36,18 @@ function getDefaultSettings() {
   };
 }
 
+/**
+ * 读取任务目录中的默认启用状态。
+ * @param {*} catalogItem
+ */
 function catalogDefaultEnabled(catalogItem) {
   return catalogItem && catalogItem.defaultEnabled === false ? false : true;
 }
 
+/**
+ * 根据目录生成新增任务的默认模板。
+ * @param {*} index
+ */
 function createTaskTemplate(index) {
   var base = TASK_CATALOG[(index - 1) % TASK_CATALOG.length] || TASK_CATALOG[0];
   return {
@@ -38,6 +57,9 @@ function createTaskTemplate(index) {
   };
 }
 
+/**
+ * 构建默认配置对象。
+ */
 function getDefaultConfig() {
   return {
     profileName: "default",
@@ -52,6 +74,11 @@ function getDefaultConfig() {
   };
 }
 
+/**
+ * 标准化单个任务配置字段。
+ * @param {*} task
+ * @param {*} fallback
+ */
 function normalizeTask(task, fallback) {
   var fb = fallback || { id: "task_unknown", name: "未命名任务", enabled: true };
   var src = isPlainObject(task) ? task : {};
@@ -62,6 +89,10 @@ function normalizeTask(task, fallback) {
   };
 }
 
+/**
+ * 标准化 settings 并补齐默认值。
+ * @param {*} raw
+ */
 function normalizeSettings(raw) {
   var defaults = getDefaultSettings();
   var settings = isPlainObject(raw) ? raw : {};
@@ -74,6 +105,10 @@ function normalizeSettings(raw) {
   };
 }
 
+/**
+ * 兼容旧配置结构并升级为当前模型。
+ * @param {*} raw
+ */
 function upgradeConfig(raw) {
   var defaults = getDefaultConfig();
   var src = isPlainObject(raw) ? raw : {};
@@ -118,10 +153,20 @@ function upgradeConfig(raw) {
   };
 }
 
+/**
+ * 校验数值是否在给定范围内。
+ * @param {*} v
+ * @param {*} min
+ * @param {*} max
+ */
 function isNumberInRange(v, min, max) {
   return typeof v === "number" && !isNaN(v) && v >= min && v <= max;
 }
 
+/**
+ * 校验配置合法性并返回标准结果。
+ * @param {*} config
+ */
 function validateConfig(config) {
   var cfg = upgradeConfig(config);
   var errors = [];
@@ -174,6 +219,10 @@ function validateConfig(config) {
   };
 }
 
+/**
+ * 校验后保存配置到本地存储。
+ * @param {*} config
+ */
 function saveConfig(config) {
   var check = validateConfig(config);
   if (!check.ok) {
@@ -184,6 +233,9 @@ function saveConfig(config) {
   return { ok: true, errors: [], config: check.config };
 }
 
+/**
+ * 从本地存储读取配置并自动修正。
+ */
 function loadConfig() {
   var sto = storages.create(STORAGE_NAME);
   var cfg = sto.get(CONFIG_KEY);
@@ -204,6 +256,9 @@ function loadConfig() {
   };
 }
 
+/**
+ * 重置为默认配置并保存。
+ */
 function resetConfig() {
   return saveConfig(getDefaultConfig());
 }

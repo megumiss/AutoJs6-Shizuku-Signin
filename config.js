@@ -1,4 +1,4 @@
-﻿"ui";
+"ui";
 
 var storage = require("./src/core/storage");
 
@@ -65,6 +65,11 @@ ui.layout(
   </vertical>
 );
 
+/**
+ * 更新配置页状态文案与颜色，用于提示当前操作结果。
+ * @param {*} message
+ * @param {*} isError
+ */
 function setStatus(message, isError) {
   ui.run(function () {
     ui.statusText.setText(message);
@@ -72,6 +77,13 @@ function setStatus(message, isError) {
   });
 }
 
+/**
+ * 解析并校验数值输入，超出范围时抛出可读错误。
+ * @param {*} raw
+ * @param {*} fieldName
+ * @param {*} min
+ * @param {*} max
+ */
 function parseNumber(raw, fieldName, min, max) {
   var v = Number(String(raw).trim());
   if (isNaN(v) || v < min || v > max) {
@@ -80,6 +92,11 @@ function parseNumber(raw, fieldName, min, max) {
   return v;
 }
 
+/**
+ * 将任务配置转换为列表展示项模型。
+ * @param {*} task
+ * @param {*} index
+ */
 function toTaskItem(task, index) {
   return {
     idx: String(index),
@@ -89,6 +106,9 @@ function toTaskItem(task, index) {
   };
 }
 
+/**
+ * 保证当前选中任务索引始终有效。
+ */
 function ensureSelectedTaskIndex() {
   if (!workingConfig.tasks.length) {
     selectedTaskIndex = -1;
@@ -99,6 +119,9 @@ function ensureSelectedTaskIndex() {
   }
 }
 
+/**
+ * 将配置数据渲染到 UI 控件并刷新任务列表。
+ */
 function renderAll() {
   ui.profileNameInput.setText(String(workingConfig.profileName || ""));
   ui.dryRunSwitch.setChecked(!!workingConfig.settings.dryRun);
@@ -114,6 +137,9 @@ function renderAll() {
   }
 }
 
+/**
+ * 把 UI 输入回写到工作配置对象。
+ */
 function applyGlobalFromUi() {
   workingConfig.profileName = String(ui.profileNameInput.text()).trim() || "default";
   workingConfig.settings.dryRun = !!ui.dryRunSwitch.isChecked();
@@ -123,6 +149,9 @@ function applyGlobalFromUi() {
   workingConfig.settings.lockScreenPassword = String(ui.lockScreenPasswordInput.text());
 }
 
+/**
+ * 执行输入校验与配置标准化，失败时弹窗提示。
+ */
 function validateAndSync() {
   try {
     applyGlobalFromUi();
@@ -142,6 +171,9 @@ function validateAndSync() {
   return true;
 }
 
+/**
+ * 从持久化存储加载配置并回填到 UI。
+ */
 function loadFromStorage() {
   var loaded = storage.loadConfig();
   if (!loaded.ok) {

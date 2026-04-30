@@ -1,3 +1,10 @@
+/**
+ * 按统一格式输出结构化日志。
+ * @param {*} level
+ * @param {*} tag
+ * @param {*} message
+ * @param {*} payload
+ */
 function log(level, tag, message, payload) {
   var line = "[" + level + "][" + tag + "] " + message;
   if (payload !== undefined) {

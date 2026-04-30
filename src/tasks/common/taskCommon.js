@@ -3,31 +3,59 @@ var input = require("../../adapters/input");
 var screen = require("../../adapters/screen");
 var ocrEngine = require("../../vision/ocrEngine");
 
+/**
+ * 创建统一结构的任务错误对象。
+ * @param {*} code
+ * @param {*} message
+ * @param {*} details
+ */
 function createTaskError(code, message, details) {
   return errors.createError(code, message, details || null);
 }
 
+/**
+ * 校验 shell 执行结果，失败时抛出任务错误。
+ * @param {*} result
+ * @param {*} code
+ * @param {*} message
+ */
 function assertShellResult(result, code, message) {
   if (!result || !result.ok) {
     throw createTaskError(code, message, { shellResult: result || null });
   }
 }
 
+/**
+ * 在支持 sleep 的环境中按毫秒等待。
+ * @param {*} ms
+ */
 function sleepMs(ms) {
   if (typeof sleep === "function" && ms > 0) {
     sleep(Math.round(ms));
   }
 }
 
+/**
+ * 标准化文本，去除空白后用于稳健匹配。
+ * @param {*} text
+ */
 function normalizeText(text) {
   return String(text == null ? "" : text).replace(/\s+/g, "").trim();
 }
 
+/**
+ * 将输入安全转换为数字，失败时返回 null。
+ * @param {*} v
+ */
 function toNumber(v) {
   var n = Number(v);
   return isNaN(n) ? null : n;
 }
 
+/**
+ * 从 OCR 节点对象提取可用文本字段。
+ * @param {*} node
+ */
 function extractText(node) {
   if (node == null) return "";
   if (typeof node === "string") return node;
@@ -38,6 +66,10 @@ function extractText(node) {
   return "";
 }
 
+/**
+ * 将 OCR 原始结果统一拼接为可读文本。
+ * @param {*} raw
+ */
 function extractOcrText(raw) {
   if (raw == null) return "";
   if (typeof raw === "string") return raw;
@@ -57,6 +89,10 @@ function extractOcrText(raw) {
   return String(raw);
 }
 
+/**
+ * 从矩形边界对象计算中心点坐标。
+ * @param {*} rect
+ */
 function centerFromRect(rect) {
   if (!rect) return null;
 
@@ -99,6 +135,10 @@ function centerFromRect(rect) {
   return null;
 }
 
+/**
+ * 将多种点位结构归一化为坐标数组。
+ * @param {*} maybePoints
+ */
 function toPointArray(maybePoints) {
   if (!Array.isArray(maybePoints)) return [];
   var pts = [];
@@ -126,6 +166,10 @@ function toPointArray(maybePoints) {
   return pts;
 }
 
+/**
+ * 根据多边形点位计算中心坐标。
+ * @param {*} maybePoints
+ */
 function centerFromPoints(maybePoints) {
   var pts = toPointArray(maybePoints);
   if (!pts.length) return null;
@@ -143,6 +187,10 @@ function centerFromPoints(maybePoints) {
   };
 }
 
+/**
+ * 从 OCR 节点中提取可点击中心点。
+ * @param {*} node
+ */
 function extractCenter(node) {
   if (!node || typeof node !== "object") return null;
 
@@ -164,6 +212,10 @@ function extractCenter(node) {
   return null;
 }
 
+/**
+ * 将 OCR detect 结果统一转换为数组结构。
+ * @param {*} raw
+ */
 function toDetectList(raw) {
   if (Array.isArray(raw)) return raw;
   if (!raw || typeof raw !== "object") return [];
@@ -173,6 +225,11 @@ function toDetectList(raw) {
   return [];
 }
 
+/**
+ * 在 detect 结果中查找目标文本并给出最佳命中项。
+ * @param {*} raw
+ * @param {*} targetText
+ */
 function findTargetFromDetect(raw, targetText) {
   var list = toDetectList(raw);
   var target = normalizeText(targetText);
@@ -204,6 +261,11 @@ function findTargetFromDetect(raw, targetText) {
   return best;
 }
 
+/**
+ * 使用 recognize 结果兜底判断目标文本是否出现。
+ * @param {*} img
+ * @param {*} targetText
+ */
 function containsTargetByRecognize(img, targetText) {
   var raw = ocrEngine.recognize(img);
   var target = normalizeText(targetText);
@@ -226,6 +288,10 @@ function containsTargetByRecognize(img, targetText) {
   return false;
 }
 
+/**
+ * 轮询等待目标文本出现并点击其中心点。
+ * @param {*} options
+ */
 function waitAndClickText(options) {
   var step = options || {};
   var timeoutMs = toNumber(step.timeoutMs);
@@ -240,6 +306,7 @@ function waitAndClickText(options) {
   var deadline = Date.now() + timeoutMs;
   var lastSeenNoPoint = null;
 
+  // 轮询截图与 OCR 检测：命中后立即点击，直到超时才失败。
   while (Date.now() < deadline) {
     var img = null;
     try {
@@ -272,6 +339,7 @@ function waitAndClickText(options) {
       if (matched && !matched.point) {
         lastSeenNoPoint = matched.text;
       } else if (containsTargetByRecognize(img, step.text)) {
+        // recognize 命中但无坐标时记录状态，便于超时报错排查。
         lastSeenNoPoint = step.text;
       }
     } finally {
@@ -289,6 +357,11 @@ function waitAndClickText(options) {
   });
 }
 
+/**
+ * 获取设备分辨率，缺失时使用默认值。
+ * @param {*} defaultWidth
+ * @param {*} defaultHeight
+ */
 function getDeviceSize(defaultWidth, defaultHeight) {
   var width = (typeof device !== "undefined" && device && device.width) ? device.width : (defaultWidth || 1080);
   var height = (typeof device !== "undefined" && device && device.height) ? device.height : (defaultHeight || 2400);

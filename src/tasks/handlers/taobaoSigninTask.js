@@ -2,6 +2,12 @@ var resultUtil = require("../../core/result");
 var appControl = require("../../adapters/appControl");
 var taskCommon = require("../common/taskCommon");
 
+/**
+ * 执行当前任务的主流程并返回标准任务结果。
+ * @param {*} taskConfig
+ * @param {*} ctx
+ * @param {*} settings
+ */
 function run(taskConfig, ctx, settings) {
   var startedAt = Date.now();
   var dryRun = !!(settings && settings.dryRun);
@@ -38,6 +44,7 @@ function run(taskConfig, ctx, settings) {
     var pollMs = Number(taskConfig.pollMs || 600);
     if (isNaN(pollMs) || pollMs < 150) pollMs = 600;
 
+    // 按页面流程序列化执行，每一步都是“等文字出现并点击”。
     var steps = [
       {
         id: "MY_TAOBAO",
@@ -71,6 +78,7 @@ function run(taskConfig, ctx, settings) {
         step.timeoutMs = 20000;
       }
 
+      // 当前步骤失败会抛错并中断后续步骤，便于直接定位失败节点。
       evidence.push("等待目标出现: " + step.text);
       taskCommon.waitAndClickText({
         ctx: ctx,

@@ -1,4 +1,9 @@
-﻿function createTaskResult(task, options) {
+/**
+ * 构建统一结构的任务执行结果。
+ * @param {*} task
+ * @param {*} options
+ */
+function createTaskResult(task, options) {
   var opts = options || {};
   return {
     taskId: task.id,
@@ -14,6 +19,11 @@
   };
 }
 
+/**
+ * 构建被跳过任务的结果对象。
+ * @param {*} task
+ * @param {*} reason
+ */
 function createSkippedResult(task, reason) {
   return createTaskResult(task, {
     ok: false,
@@ -27,6 +37,11 @@ function createSkippedResult(task, reason) {
   });
 }
 
+/**
+ * 汇总所有任务结果并生成整体执行报告。
+ * @param {*} results
+ * @param {*} mode
+ */
 function createSummary(results, mode) {
   var total = results.length;
   var success = results.filter(function (r) { return r.ok; }).length;

@@ -1,4 +1,9 @@
-﻿function runWithRetry(fn, options) {
+/**
+ * 按重试策略执行函数，直到成功或达到上限。
+ * @param {*} fn
+ * @param {*} options
+ */
+function runWithRetry(fn, options) {
   var opts = options || {};
   var maxRetry = opts.maxRetry == null ? 0 : opts.maxRetry;
   var intervalMs = opts.intervalMs == null ? 0 : opts.intervalMs;

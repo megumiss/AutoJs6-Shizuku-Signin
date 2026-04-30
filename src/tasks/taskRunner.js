@@ -1,11 +1,22 @@
-﻿var signinTask = require("./signinTask");
+var signinTask = require("./signinTask");
 var resultUtil = require("../core/result");
 var errors = require("../core/errors");
 
+/**
+ * 执行单个任务处理器并返回任务结果。
+ * @param {*} task
+ * @param {*} ctx
+ * @param {*} settings
+ */
 function runSingleTask(task, ctx, settings) {
   return signinTask.run(task, ctx, settings);
 }
 
+/**
+ * 按配置顺序串行执行启用任务并生成汇总结果。
+ * @param {*} config
+ * @param {*} ctx
+ */
 function runTasks(config, ctx) {
   var settings = config.settings || {};
   var mode = "serial";

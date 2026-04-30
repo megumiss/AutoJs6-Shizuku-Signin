@@ -1,6 +1,12 @@
-﻿var ocrEngine = require("./ocrEngine");
+var ocrEngine = require("./ocrEngine");
 var matcher = require("./matcher");
 
+/**
+ * 根据场景名选择检测区域与候选文案，判断当前页面状态。
+ * @param {*} sceneName
+ * @param {*} screenshot
+ * @param {*} task
+ */
 function detectScene(sceneName, screenshot, task) {
   var region = null;
   var candidates = [];
